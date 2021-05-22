@@ -66,13 +66,13 @@ class Blockchain {
         let newBlock = new BlockClass.Block({ data: block })
 
         return new Promise(async (resolve, reject) => {
-           let isChainValid = true
+           let isChainValid = await this.validateChain()
            if (isChainValid){
                 // UTC timestamp
             if (this.chain.length>0) {
                 // previous block hash
                 newBlock.height = this.chain.length;
-                newBlock.previousBlockHash = this.chain[this.chain.length - 1].hash
+                newBlock.previousBlockHash = self.chain[this.chain.length - 1].hash
             }
             newBlock.hash = SHA256(JSON.stringify(newBlock)).toString();
             // SHA256 requires a string of data
@@ -128,7 +128,6 @@ class Blockchain {
      * @param {*} star 
      */
      submitStar(address, message, signature, star) {
-        let self = this;
         return new Promise(async (resolve, reject) => {
             let t = parseInt(message.split(':')[1])
             let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
@@ -220,17 +219,19 @@ class Blockchain {
         let errorLog = [];
         return new Promise(async (resolve, reject) => {
             self.chain.forEach((c, index) => {
-                blockIsValid = c.validate()
+                let blockIsValid = c.validate()
+
                 if (!blockIsValid){
-                    errorLog.push("Found error with block " + c.hash)
+                    errorLog.push("Invalid block: " + c.hash)
                 }
 
                 if (index > 0 && c.previousBlockHash !== self.chain[index - 1].hash){
-                    errorLog.push("Previous block hash invalid on " + c.hash)
+                    errorLog.push("Previous block hash invalid on " + c.height)
                 }
             })
 
             if (errorLog.length > 0){
+                console.log(errorLog)
                 reject(errorLog)
             }
             else {
