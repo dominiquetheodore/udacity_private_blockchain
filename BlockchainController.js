@@ -17,6 +17,7 @@
         this.submitStar();
         this.getBlockByHash();
         this.getStarsByOwner();
+        this.validateBlockChain()
     }
 
     // Enpoint to Get a Block by Height (GET Endpoint)
@@ -97,6 +98,23 @@
         });
     }
 
+    // This endpoint checks if the chain is valid
+    validateBlockChain() {
+        this.app.get("/validate", async (req, res) => {
+            try {                
+                let isChainValid = await this.blockchain.validateChain();
+                if(isChainValid){
+                    return res.status(200).send("Chain is valid")
+                } else {
+                    return res.status(500).send("Not valid!!");
+                }
+            } catch (error) {
+                console.log(error)
+                return res.status(500).send("An error happened!");
+            }
+        });
+    }
+
     // This endpoint allows you to request the list of Stars registered by an owner
     getStarsByOwner() {
         this.app.get("/blocks/:address", async (req, res) => {
@@ -120,7 +138,6 @@
             
         });
     }
-
 }
 
 module.exports = (app, blockchainObj) => { return new BlockchainController(app, blockchainObj);}
